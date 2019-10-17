@@ -1,0 +1,62 @@
+/*
+ * _config.c
+ *
+ *  Created on: Aug 26, 2019
+ *      Author: Puja
+ */
+
+#include "_config.h"
+
+extern osMutexId SwvMutexHandle;
+
+void ITM_Out(uint32_t ch) {
+#if (DEBUG_HUB == 1)
+	int port = 0;
+
+	while (ITM->PORT[port].u32 == 0)
+		;
+	ITM->PORT[port].u8 = (uint8_t) ch;
+#endif
+}
+
+void swvPrint(char* ptr) {
+	osMutexWait(SwvMutexHandle, osWaitForever);
+
+	while (*ptr != '\0') {
+		ITM_Out((uint32_t) *(ptr++));
+	}
+
+	osMutexRelease(SwvMutexHandle);
+}
+
+void swvPrintLn(char* ptr) {
+	osMutexWait(SwvMutexHandle, osWaitForever);
+
+	while (*ptr != '\0') {
+		ITM_Out((uint32_t) *(ptr++));
+	}
+	ITM_Out((uint32_t) '\n');
+
+	osMutexRelease(SwvMutexHandle);
+}
+
+void swvPrintDebug(char* var, char* value) {
+	swvPrint("\n===============================\n");
+	swvPrint(var);
+	swvPrint(" => ");
+	swvPrint(value);
+	swvPrint("\n===============================\n");
+}
+
+uint8_t convertHourTo(uint8_t hour, int offset) {
+	return (hour + offset) > 23 ? ((hour + offset) - 24) : (hour + offset);
+}
+
+void BSP_Led_Write(uint8_t state) {
+	HAL_GPIO_WritePin(BSP_LED_GPIO_Port, BSP_LED_Pin, state);
+}
+
+void BSP_Led_Toggle(void) {
+	HAL_GPIO_TogglePin(BSP_LED_GPIO_Port, BSP_LED_Pin);
+}
+

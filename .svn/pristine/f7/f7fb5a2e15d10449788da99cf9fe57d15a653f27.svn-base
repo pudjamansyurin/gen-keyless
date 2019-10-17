@@ -1,0 +1,48 @@
+/*
+ * _nrf24_hal.h
+ *
+ *  Created on: Sep 19, 2019
+ *      Author: Puja
+ */
+
+#ifndef __NRF24_HAL_H
+#define __NRF24_HAL_H
+
+// Hardware abstraction layer for NRF24L01+ transceiver (hardware depended functions)
+// SPI transmit functions
+
+// Peripheral libraries
+#include "stm32f1xx_hal.h"
+#include "main.h"
+
+// SPI port peripheral
+#define nRF24_SPI_TIMEOUT						100 // in ms
+
+// CSN (chip select negative) pin
+#define nRF24_CSN_PORT             NRF24_CSN_GPIO_Port
+#define nRF24_CSN_PIN              NRF24_CSN_Pin
+#define nRF24_CSN_L                HAL_GPIO_WritePin(nRF24_CSN_PORT, nRF24_CSN_PIN, GPIO_PIN_RESET)
+#define nRF24_CSN_H                HAL_GPIO_WritePin(nRF24_CSN_PORT, nRF24_CSN_PIN, GPIO_PIN_SET)
+
+// CE (chip enable) pin
+#define nRF24_CE_PORT              NRF24_CE_GPIO_Port
+#define nRF24_CE_PIN               NRF24_CE_Pin
+#define nRF24_CE_L                 HAL_GPIO_WritePin(nRF24_CE_PORT, nRF24_CE_PIN, GPIO_PIN_RESET)
+#define nRF24_CE_H                 HAL_GPIO_WritePin(nRF24_CE_PORT, nRF24_CE_PIN, GPIO_PIN_SET)
+
+// IRQ pin
+#define nRF24_IRQ_PORT             NRF24_IRQ_GPIO_Port
+#define nRF24_IRQ_PIN              NRF24_IRQ_Pin
+
+// Macros for the RX on/off
+#define nRF24_RX_ON                nRF24_CE_H
+#define nRF24_RX_OFF               nRF24_CE_L
+
+// Timeout counter (depends on the CPU speed)
+// Used for not stuck waiting for IRQ
+#define nRF24_WAIT_TIMEOUT         (uint32_t)0x000FFFFF
+
+// Function prototypes
+uint8_t nRF24_LL_RW(uint8_t data);
+
+#endif // __NRF24_HAL_H

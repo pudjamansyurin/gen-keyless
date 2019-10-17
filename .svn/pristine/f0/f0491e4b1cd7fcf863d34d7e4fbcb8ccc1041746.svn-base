@@ -1,0 +1,35 @@
+/*
+ * _nrf24_hal.c
+ *
+ *  Created on: Sep 19, 2019
+ *      Author: Puja
+ */
+
+#include "_nrf24_hal.h"
+
+extern SPI_HandleTypeDef hspi1;
+
+// Low level SPI transmit/receive function (hardware depended)
+// input:
+//   data - value to transmit via SPI
+// return: value received from SPI
+uint8_t nRF24_LL_RW(uint8_t data) {
+	uint8_t rx_data;
+//	/* Wait for SPIx Busy flag */
+//	while (__HAL_SPI_GET_FLAG(&hspi1, SPI_FLAG_BSY) != RESET)
+//		;
+//
+//	// Send byte to SPI (TXE cleared)
+//	HAL_SPI_Transmit(&hspi1, &data, 1, nRF24_SPI_TIMEOUT);
+//
+//	// Wait while receive buffer is empty
+//	while (__HAL_SPI_GET_FLAG(&hspi1, SPI_FLAG_RXNE) == RESET)
+//		;
+//
+//	// Return received byte
+//	HAL_SPI_Receive(&hspi1, &rx_data, 1, nRF24_SPI_TIMEOUT);
+
+	HAL_SPI_TransmitReceive(&hspi1, &data, &rx_data, 1, nRF24_SPI_TIMEOUT);
+
+	return rx_data;
+}
