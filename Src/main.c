@@ -58,7 +58,7 @@ osMutexId SwvMutexHandle;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
-void StartKeylessTask(void const * argument);
+void StartKeylessTask(void const *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -281,17 +281,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	extern nrf24l01 nrf;
 
-	switch (GPIO_Pin) {
-		case NRF24_IRQ_Pin:
-			nrf_irq_handler(&nrf);
-			break;
-		case KEY_FINDER_Pin:
-			xTaskNotifyFromISR(keylessTaskHandle, EVENT_KEYLESS_FINDER, eSetBits, &xHigherPriorityTaskWoken);
-			break;
-		default:
-			break;
+	if (osKernelRunning()) {
+		switch (GPIO_Pin) {
+			case NRF24_IRQ_Pin:
+				nrf_irq_handler(&nrf);
+				break;
+			case KEY_FINDER_Pin:
+				xTaskNotifyFromISR(keylessTaskHandle, EVENT_KEYLESS_FINDER, eSetBits, &xHigherPriorityTaskWoken);
+				break;
+			default:
+				break;
+		}
 	}
-
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /* USER CODE END 4 */
@@ -303,7 +304,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
  * @retval None
  */
 /* USER CODE END Header_StartKeylessTask */
-void StartKeylessTask(void const * argument) {
+void StartKeylessTask(void const *argument) {
 	/* USER CODE BEGIN 5 */
 	uint32_t ulNotifiedValue;
 	BaseType_t xResult;
