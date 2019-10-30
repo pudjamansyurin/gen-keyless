@@ -17,5 +17,4 @@ void BSP_Led_Toggle(void) {
 
 void Set_PA(uint8_t state) {
 	HAL_GPIO_WritePin(NRF24_PA_GPIO_Port, NRF24_PA_Pin, !state);
-	osDelay(50);
 }
