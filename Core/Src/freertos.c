@@ -53,10 +53,6 @@
    
 /* USER CODE END FunctionPrototypes */
 
-/* Pre/Post sleep processing prototypes */
-void PreSleepProcessing(uint32_t *ulExpectedIdleTime);
-void PostSleepProcessing(uint32_t *ulExpectedIdleTime);
-
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
 
@@ -88,18 +84,6 @@ __weak void vApplicationMallocFailedHook(void)
    provide information on how the remaining heap might be fragmented). */
 }
 /* USER CODE END 5 */
-
-/* USER CODE BEGIN PREPOSTSLEEP */
-__weak void PreSleepProcessing(uint32_t *ulExpectedIdleTime)
-{
-/* place for user code */ 
-}
-
-__weak void PostSleepProcessing(uint32_t *ulExpectedIdleTime)
-{
-/* place for user code */
-}
-/* USER CODE END PREPOSTSLEEP */
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;

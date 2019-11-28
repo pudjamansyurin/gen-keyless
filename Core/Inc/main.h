@@ -58,6 +58,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define PING_INTERVAL_MS 3000
 #define NRF24_CSN_Pin GPIO_PIN_4
 #define NRF24_CSN_GPIO_Port GPIOA
 #define NRF24_CE_Pin GPIO_PIN_5

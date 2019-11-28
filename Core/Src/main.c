@@ -44,6 +44,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+RTC_HandleTypeDef hrtc;
+
 SPI_HandleTypeDef hspi1;
 
 osThreadId KeylessTaskHandle;
@@ -55,10 +57,12 @@ osThreadId KeylessTaskHandle;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_RTC_Init(void);
 void StartKeylessTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-
+void PreSleepProcessing(void);
+void PostSleepProcessing(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -96,6 +100,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -149,15 +154,23 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
+  /** Configure LSE Drive Capability 
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.MSICalibrationValue = 0;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
-  RCC_OscInitStruct.PLL.PLLN = 20;
+  RCC_OscInitStruct.PLL.PLLN = 40;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -178,12 +191,62 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /** Configure the main internal regulator output voltage 
   */
   if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
   {
     Error_Handler();
   }
+  /** Enable MSI Auto calibration 
+  */
+  HAL_RCCEx_EnableMSIPLLMode();
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+  /** Initialize RTC Only 
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Enable the WakeUp 
+  */
+  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0, RTC_WAKEUPCLOCK_RTCCLK_DIV16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
+
 }
 
 /**
@@ -209,7 +272,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -253,10 +316,10 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BSP_LED_GPIO_Port, BSP_LED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PA2 PA3 PA8 PA11 
-                           PA12 PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_8|GPIO_PIN_11 
-                          |GPIO_PIN_12|GPIO_PIN_15;
+  /*Configure GPIO pins : PA0 PA2 PA3 PA8 
+                           PA11 PA12 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_8 
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -315,21 +378,63 @@ static void MX_GPIO_Init(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	extern nrf24l01 nrf;
-	uint8_t event;
 
 	if (osKernelRunning()) {
-		switch (GPIO_Pin) {
-		case NRF24_IRQ_Pin:
+		// handle NRF24 IRQ
+		if (GPIO_Pin == NRF24_IRQ_Pin) {
 			nrf_irq_handler(&nrf);
-			break;
-		default:
-			event = (GPIO_Pin == KEY_FINDER_Pin ? EVENT_KEYLESS_FINDER : EVENT_KEYLESS_SEAT);
-			xTaskNotifyFromISR(KeylessTaskHandle, event, eSetBits, &xHigherPriorityTaskWoken);
-			break;
+		}
+		// handle buttons
+		if (GPIO_Pin == KEY_FINDER_Pin || GPIO_Pin == KEY_SEAT_Pin) {
+			xTaskNotifyFromISR(KeylessTaskHandle, GPIO_Pin, eSetBits, &xHigherPriorityTaskWoken);
 		}
 	}
+
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+
+void PreSleepProcessing(void)
+{
+	// Prepare to enter sleep mode
+//	HAL_SPI_MspDeInit(&hspi1);
+
+	/* RTC Wakeup Interrupt Generation:
+	 RTC_WAKEUPCLOCK_RTCCLK_DIV = RTCCLK_Div16 = 16
+
+	 Wakeup Time Base = (RTC_WAKEUPCLOCK_RTCCLK_DIV /(LSE))
+	 Wakeup Time = Wakeup Time Base * WakeUpCounter
+	 WakeUpCounter = Wakeup Time / Wakeup Time Base
+
+	 To configure the wake up timer to:
+	 Wakeup Time Base = 16 / (32.768KHz) = 0.48828125 ms
+	 WakeUpCounter = X ms / 0.48828125 ms = ?
+
+	 Therefore, maximum wake-up counter = 65535 = 0xFFFF
+	 */
+	HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, ((PING_INTERVAL_MS * 1000) / 488), RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+
+	// Suspend the tick
+	HAL_SuspendTick();
+
+	// Enter STOP 2 mode
+	HAL_PWREx_EnterSTOP2Mode(PWR_STOPENTRY_WFI);
+}
+
+void PostSleepProcessing(void)
+{
+	// Resume the tick
+	HAL_ResumeTick();
+
+	// Re-Configure the system clock
+	SystemClock_Config();
+
+	/* Disable all used wake-up source */
+	HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+
+	// Re-Init the SPI
+//	HAL_SPI_MspInit(&hspi1);
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartKeylessTask */
@@ -343,7 +448,8 @@ void StartKeylessTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
 	extern nrf24l01 nrf;
-	uint32_t ulNotifiedValue;
+	uint32_t GPIO_Pin;
+	GPIO_TypeDef *GPIO_Port;
 	BaseType_t xResult;
 	nrf24l01_config config;
 	NRF_TX_PWR power;
@@ -359,11 +465,12 @@ void StartKeylessTask(void const * argument)
 
 	/* Infinite loop */
 	for (;;) {
-		// check if event happen
-		xResult = xTaskNotifyWait(ULONG_MAX, ULONG_MAX, &ulNotifiedValue, 0);
 		// set default power to lowest
 		power = NRF_TX_PWR_M18dBm;
 		event = EVENT_KEYLESS_BROADCAST;
+
+		// check if event happen
+		xResult = xTaskNotifyWait(0x00, ULONG_MAX, &GPIO_Pin, pdMS_TO_TICKS(0));
 
 		// do this if events occurred
 		if (xResult == pdTRUE) {
@@ -371,42 +478,52 @@ void StartKeylessTask(void const * argument)
 			osDelay(50);
 			xTaskNotifyStateClear(NULL);
 
-			// check button source
-			if ((ulNotifiedValue & EVENT_KEYLESS_FINDER)) {
-				// Finder command
-				event = EVENT_KEYLESS_FINDER;
-				power = NRF_TX_PWR_0dBm;
-			} else if (ulNotifiedValue & EVENT_KEYLESS_SEAT) {
-				// Seat Unlock command
-				event = EVENT_KEYLESS_SEAT;
+			// read again the value
+			GPIO_Port = (GPIO_Pin == KEY_FINDER_Pin ? KEY_FINDER_GPIO_Port : KEY_SEAT_GPIO_Port);
+			if (HAL_GPIO_ReadPin(GPIO_Port, GPIO_Pin)) {
+				// only check when button HIGH
+				if ((GPIO_Pin == KEY_FINDER_Pin)) {
+					// Finder command
+					event = EVENT_KEYLESS_FINDER;
+					power = NRF_TX_PWR_0dBm;
+				} else {
+					// Seat Unlock command
+					event = EVENT_KEYLESS_SEAT;
+				}
 			}
 		}
 
-		// change "Power Down" -> "Standby I"
-		nrf_power_up(&nrf, 1);
+		if (xResult == pdFALSE || event != EVENT_KEYLESS_BROADCAST) {
+			// prepare payload
+			payload_tx[payload_length - 1] = event;
+			Set_PA((power == NRF_TX_PWR_0dBm));
 
-		// set power
-		ce_reset(&nrf);
-		nrf_set_tx_power(&nrf, power);
-		Set_PA((power == NRF_TX_PWR_0dBm));
+			// change "Power Down" -> "Standby I"
+			nrf_power_up(&nrf, 1);
 
-		// send packet (blocking)
-		payload_tx[payload_length - 1] = event;
-		nrf_send_packet_noack(&nrf, payload_tx);
+			// "Standby I" : set power
+			nrf_set_tx_power(&nrf, power);
 
-		// change "TX Mode" -> "Power Down"
-		nrf_power_up(&nrf, 0);
+			// "TX Mode" : send packet (blocking)
+			nrf_send_packet_noack(&nrf, payload_tx);
 
-		// indicator
-		for (int i = 0; i < ((event + 1) * 2); i++) {
-			BSP_Led_Toggle();
-			osDelay(50);
+			// change "TX Mode" -> "Power Down"
+			ce_reset(&nrf);
+			nrf_power_up(&nrf, 0);
+
+			//			// indicator
+			//			for (int i = 0; i < ((event + 1) * 2); i++) {
+			//				BSP_Led_Toggle();
+			//				osDelay(50);
+			//			}
 		}
 
-		// Enter sleep mode
-		osDelay(500);
-	}
+		// Enter Stop-2 mode
+		PreSleepProcessing();
 
+		// Exit Stop-2 mode
+		PostSleepProcessing();
+	}
   /* USER CODE END 5 */ 
 }
 
@@ -439,6 +556,10 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
+
+	BSP_Led_Write(1);
+	while (1)
+		;
 
   /* USER CODE END Error_Handler_Debug */
 }
