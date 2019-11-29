@@ -59,6 +59,7 @@ void Error_Handler(void);
 
 /* Private defines -----------------------------------------------------------*/
 #define PING_INTERVAL_MS 3000
+#define IWDG_TIMEOUT_MS 4095
 #define NRF24_CSN_Pin GPIO_PIN_4
 #define NRF24_CSN_GPIO_Port GPIOA
 #define NRF24_CE_Pin GPIO_PIN_5
