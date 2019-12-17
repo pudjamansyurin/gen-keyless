@@ -506,7 +506,7 @@ void StartKeylessTask(void const *argument)
 	nrf24l01_config config;
 	NRF_TX_PWR power;
 
-	uint8_t event;
+	uint8_t msg;
 	uint8_t payload_length = 8;
 	uint8_t payload_tx[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
@@ -522,7 +522,7 @@ void StartKeylessTask(void const *argument)
 
 		// set default power to lowest
 		power = NRF_TX_PWR_M18dBm;
-		event = EVENT_KEYLESS_BROADCAST;
+		msg = MSG_KEYLESS_BROADCAST;
 
 		// check if event happen
 		xResult = xTaskNotifyWait(0x00, ULONG_MAX, &GPIO_Pin, pdMS_TO_TICKS(0));
@@ -539,18 +539,18 @@ void StartKeylessTask(void const *argument)
 				// only check when button HIGH
 				if ((GPIO_Pin == KEY_FINDER_Pin)) {
 					// Finder command
-					event = EVENT_KEYLESS_FINDER;
+					msg = MSG_KEYLESS_FINDER;
 					power = NRF_TX_PWR_0dBm;
 				} else {
 					// Seat Unlock command
-					event = EVENT_KEYLESS_SEAT;
+					msg = MSG_KEYLESS_SEAT;
 				}
 			}
 		}
 
-		if (xResult == pdFALSE || event != EVENT_KEYLESS_BROADCAST) {
+		if (xResult == pdFALSE || msg != MSG_KEYLESS_BROADCAST) {
 			// prepare payload
-			payload_tx[payload_length - 1] = event;
+			payload_tx[payload_length - 1] = msg;
 			Set_PA((power == NRF_TX_PWR_0dBm));
 
 			// change "Power Down" -> "Standby I"
@@ -567,7 +567,7 @@ void StartKeylessTask(void const *argument)
 			nrf_power_up(&nrf, 0);
 
 			//			// indicator
-			//			for (int i = 0; i < ((event + 1) * 2); i++) {
+			//			for (int i = 0; i < ((msg + 1) * 2); i++) {
 			//				BSP_Led_Toggle();
 			//				osDelay(50);
 			//			}

@@ -17,10 +17,10 @@
 #define ClearBitOf(var, x) 				(var &= ~(1 << x))
 #define ToggleBitOf(var, x) 			(var ^= 1 << x)
 
-// event list
-#define EVENT_KEYLESS_BROADCAST		SetBit(0)
-#define EVENT_KEYLESS_FINDER			SetBit(1)
-#define EVENT_KEYLESS_SEAT 				SetBit(2)
+// msg list
+#define MSG_KEYLESS_BROADCAST		SetBit(0)
+#define MSG_KEYLESS_FINDER			SetBit(1)
+#define MSG_KEYLESS_SEAT 				SetBit(2)
 
 // Function prototype
 void BSP_Led_Write(uint8_t state);
