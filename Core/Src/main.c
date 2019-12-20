@@ -378,14 +378,14 @@ static void MX_GPIO_Init(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : KEY_SEAT_Pin KEY_FINDER_Pin */
-	GPIO_InitStruct.Pin = KEY_SEAT_Pin | KEY_FINDER_Pin;
+	/*Configure GPIO pins : BTN_SEAT_Pin BTN_ALARM_Pin */
+	GPIO_InitStruct.Pin = BTN_SEAT_Pin | BTN_ALARM_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : PB4 PB5 PB6 PB7 */
-	GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
+	/*Configure GPIO pins : PB4 PB6 PB7 */
+	GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_6 | GPIO_PIN_7;
 	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -419,7 +419,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 			nrf_irq_handler(&nrf);
 		}
 		// handle buttons
-		if (GPIO_Pin == KEY_FINDER_Pin || GPIO_Pin == KEY_SEAT_Pin) {
+		if (GPIO_Pin == BTN_ALARM_Pin || GPIO_Pin == BTN_SEAT_Pin) {
 			xTaskNotifyFromISR(KeylessTaskHandle, GPIO_Pin, eSetBits, &xHigherPriorityTaskWoken);
 		}
 	}
@@ -534,10 +534,10 @@ void StartKeylessTask(void const *argument)
 			xTaskNotifyStateClear(NULL);
 
 			// read again the value
-			GPIO_Port = (GPIO_Pin == KEY_FINDER_Pin ? KEY_FINDER_GPIO_Port : KEY_SEAT_GPIO_Port);
+			GPIO_Port = (GPIO_Pin == BTN_ALARM_Pin ? BTN_ALARM_GPIO_Port : BTN_SEAT_GPIO_Port);
 			if (HAL_GPIO_ReadPin(GPIO_Port, GPIO_Pin)) {
 				// only check when button HIGH
-				if ((GPIO_Pin == KEY_FINDER_Pin)) {
+				if ((GPIO_Pin == BTN_ALARM_Pin)) {
 					// Finder command
 					msg = MSG_KEYLESS_FINDER;
 					power = NRF_TX_PWR_0dBm;
