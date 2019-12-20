@@ -69,13 +69,13 @@ void Error_Handler(void);
 #define NRF24_IRQ_EXTI_IRQn EXTI0_IRQn
 #define NRF24_PA_Pin GPIO_PIN_1
 #define NRF24_PA_GPIO_Port GPIOB
-#define KEY_SEAT_Pin GPIO_PIN_9
-#define KEY_SEAT_GPIO_Port GPIOA
-#define KEY_SEAT_EXTI_IRQn EXTI9_5_IRQn
-#define KEY_FINDER_Pin GPIO_PIN_10
-#define KEY_FINDER_GPIO_Port GPIOA
-#define KEY_FINDER_EXTI_IRQn EXTI15_10_IRQn
-#define BSP_LED_Pin GPIO_PIN_3
+#define BTN_SEAT_Pin GPIO_PIN_9
+#define BTN_SEAT_GPIO_Port GPIOA
+#define BTN_SEAT_EXTI_IRQn EXTI9_5_IRQn
+#define BTN_ALARM_Pin GPIO_PIN_10
+#define BTN_ALARM_GPIO_Port GPIOA
+#define BTN_ALARM_EXTI_IRQn EXTI15_10_IRQn
+#define BSP_LED_Pin GPIO_PIN_5
 #define BSP_LED_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
