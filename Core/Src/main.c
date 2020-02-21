@@ -432,7 +432,6 @@ void PreSleepProcessing(void)
 	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
 	// Prepare to enter sleep mode
-	//	HAL_SPI_MspDeInit(&hspi1);
 	__HAL_RCC_SPI1_CLK_DISABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_1 | GPIO_PIN_6 | GPIO_PIN_7;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -476,7 +475,6 @@ void PostSleepProcessing(void)
 	HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
 
 	// Re-Init the SPI
-	//	HAL_SPI_MspInit(&hspi1);
 	__HAL_RCC_SPI1_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_1 | GPIO_PIN_6 | GPIO_PIN_7;
